@@ -37,7 +37,7 @@
     <div class="msg" id="errorMsg">❌ เกิดข้อผิดพลาดในการแชร์</div> 
 
     <script>
-        // กำหนด Flex Message Object ให้ถูกต้องตามข้อกำหนดของ LINE
+        // แก้ไขโครงสร้าง flexMessage ให้ถูกต้อง
         const flexMessage = {
             type: "flex",
             altText: "📚 แนะนำหนังสือน่าอ่าน โดย นตท.ชั้นปีที่ 2",
@@ -67,6 +67,7 @@
                                     },
                                     "position": "absolute",
                                     "offsetTop": "90%",
+                                    "offsetEnd": "30%",
                                     "offsetStart": "35%"
                                 }
                             ],
@@ -162,7 +163,7 @@
             displayMessage('loadingMsg');
             
             try {
-                // ตรวจสอบ LIFF ID ของคุณให้ถูกต้อง
+                // เริ่มต้น LIFF
                 await liff.init({ liffId: "2007236505-Lbr300GA" });  
 
                 if (!liff.isLoggedIn()) {
@@ -171,25 +172,29 @@
                 }
                 
                 if (!liff.isApiAvailable("shareTargetPicker")) {
-                    throw new Error("API shareTargetPicker ไม่รองรับในเบราว์เซอร์นี้ (โปรดเปิดในแอป LINE)");
+                    throw new Error("API shareTargetPicker ไม่รองรับ (โปรดเปิดในแอป LINE)");
                 }
 
-                // สั่งเปิด Share Target Picker ทันทีที่โหลดเสร็จ
+                document.getElementById("loadingMsg").style.display = "none";
+
+                // ส่ง Flex Message ผ่าน Share Target Picker
                 const result = await liff.shareTargetPicker([flexMessage]);
                 
                 if (result) {
                     displayMessage('successMsg');
                     setTimeout(() => liff.closeWindow(), 2000);
                 } else {
-                    // กรณีผู้ใช้กดยกเลิก
+                    // กรณีผู้ใช้ยกเลิก
                     liff.closeWindow();
                 }
 
             } catch (err) {
                 console.error("Share Error:", err);
                 const errorMsgElement = document.getElementById('errorMsg');
-                errorMsgElement.innerHTML = `❌ เกิดข้อผิดพลาด: <br> ${err.message || 'ไม่ทราบสาเหตุ'}`;
+                errorMsgElement.innerHTML = `❌ เกิดข้อผิดพลาดในการแชร์: <br> ${err.message || 'ไม่ทราบสาเหตุ'}`;
                 displayMessage('errorMsg'); 
+                // ปิดหน้าต่างหลังจาก 5 วินาทีหากเกิดข้อผิดพลาด
+                setTimeout(() => liff.closeWindow(), 5000); 
             }
         }
 
